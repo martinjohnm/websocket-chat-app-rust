@@ -44,5 +44,10 @@ async fn ws_handler(
 async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
     let (mut sender, mut receiver) = socket.split();
 
-    
+    let mut rx = state.tx.subscribe();
+
+    // spawn a green thread for each ws connection
+    tokio::spawn(async move {
+        
+    });
 }
