@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::{State, WebSocketUpgrade, ws::WebSocket}, response::IntoResponse, routing::get};
-use futures_util::StreamExt;
+use axum::{Router, extract::{State, WebSocketUpgrade, ws::{Message, WebSocket}}, response::IntoResponse, routing::get};
+use futures_util::stream::StreamExt;
+use futures_util::sink::SinkExt;
 use tokio::sync::broadcast;
 
 
@@ -48,6 +49,27 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
 
     // spawn a green thread for each ws connection
     tokio::spawn(async move {
-        
+        loop {
+            tokio::select! {
+                // BRANCH A: Listen for messages from the Hoppscotch Client
+                // This is the "Stream" half
+                Some(Ok(msg)) = receiver.next() => {
+                    if let Message::Text(text) = msg {
+                        // When we get a message, broadcast it to EVERYONE
+                        let _ = state.tx.send(format!("Anonymous: {}", text));
+                    }
+                }
+
+                // BRANCH B: Listen for messages from the Global Megaphone
+                // This is the "Broadcast" half
+                Ok(msg) = rx.recv() => {
+                    // Send the global message out to this specific client
+                    if sender.send(Message::Text(msg.into())).await.is_err() {
+                        // If sending fails (client disconnected), exit the loop
+                        break;
+                    }
+                }
+            }
+        }
     });
 }
