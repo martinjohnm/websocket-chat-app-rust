@@ -22,7 +22,7 @@ async fn main() {
 
     // 2. the router
     let app = Router::new()
-        .route("/chat", get(handler))
+        .route("/chat", get(ws_handler))
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
@@ -33,6 +33,6 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn handler() {
+async fn ws_handler() {
 
 }
