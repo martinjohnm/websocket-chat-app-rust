@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::{State, WebSocketUpgrade}, response::IntoResponse, routing::get};
+use axum::{Router, extract::{State, WebSocketUpgrade, ws::WebSocket}, response::IntoResponse, routing::get};
+use futures_util::StreamExt;
 use tokio::sync::broadcast;
 
 
@@ -37,5 +38,11 @@ async fn ws_handler(
     ws: WebSocketUpgrade,
     State(state) : State<Arc<AppState>>
 ) -> impl IntoResponse {
+    ws.on_upgrade(|socket| handle_socket(socket, state))
+}
+
+async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
+    let (mut sender, mut receiver) = socket.split();
+
     
 }
