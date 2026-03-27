@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Router, routing::get};
+use axum::{Router, extract::{State, WebSocketUpgrade}, response::IntoResponse, routing::get};
 use tokio::sync::broadcast;
 
 
@@ -33,6 +33,9 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn ws_handler() {
-
+async fn ws_handler(
+    ws: WebSocketUpgrade,
+    State(state) : State<Arc<AppState>>
+) -> impl IntoResponse {
+    
 }
